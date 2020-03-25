@@ -1,28 +1,35 @@
-#include "stm32f10x.h"
-#define POW_SLOW      1000000 
-#define POW_FAST        100000
-// It is for B0 output blink 
+nt main(void){ 
+    
+//the BEGIN of address – GPIOc is 0x4001 1000- the END of address  0x4001 13FF ;
+//the BEGIN of address – GPIOb is 0x4001 0C00- the END of address  0x4001 0FFF ;
+//the BEGIN of address – GPIOa is 0x4001 0800- the END of address  0x4001 0BFF .
 
-void delay_(int i);
+  // 0. Pointers init. NO OS!!!
+        //The BEGIN of address  GPIOc is 0x40011000
+        //Address offset: 0x00 for (GPIO_C_CRL)
+        //int *GPIO_C_CRL=(int*)(0x40011000);
+        //Address offset for CRH: 0x04 (GPIO_C_CRH)
+        int *GPIO_C_CRH = (int*)(0x40011004);
+        //Port output data register (GPIOx_ODR) (x=A..G)
+        //Address offset for ODR: 0x0C
+        //Bits 31:16 Reserved // Bits 13-15 actual for  ODRy
+        int *GPIO_C_ODR = (int*)(0x4001100C);
+        
+        //APB2ENR register for clock selection
+        int *apb2enr = (int*)0x40021018;
+        //delay counter variable
+   
+        int i;
+  // I. Enable PORTC Clock
+        *apb2enr|=0x00018;     // Init fast bus 1100 for C and A
+  // II. Enable  GPIO_Pin_13 for output push-pool Mode
+        *GPIO_C_CRH=0x00300000;//Set all PC13 ports as output
 
-int main(void){ 
-      // I. Enable PORTB Clock    
-      RCC -> APB2ENR |= RCC_APB2ENR_IOPBEN;
-      // II. Enable  all low port B for output push-pool Mode
-      GPIOB -> CRL &= 0; 
-      GPIOB -> CRL |= GPIO_CRL_MODE; 
-  
         for(;;){
-               delay_(POW_SLOW); 
-                GPIOB -> ODR |= GPIO_ODR_ODR0;// pin B0 on
-              delay_(POW_SLOW);// this plase control
-                GPIOB -> ODR &= ~(GPIO_ODR_ODR0);// pin B0 off
-              }
-    }
-
-void delay_(int del){
-  int i = 0;
-    for(i=0;i<del;i++){
-      ;
+                // 300ms
+                for(i=0;i<0x40000;i++){                }//delay
+                 *GPIO_C_ODR=0x00002000;// for C 13         10 0000 0000 0000
+                for(i=0;i<0x40000;i++){                }//delay
+                *GPIO_C_ODR=0x00000000;
       }
-}
+    }
